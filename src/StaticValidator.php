@@ -28,7 +28,13 @@ class StaticValidator
     {
         // Don't share by default to allow different arguments on subsequent calls
         if ($plugins instanceof ValidatorPluginManager) {
-            $plugins->configure(['shared_by_default' => false]);
+            if (method_exists($plugins, 'configure')) {
+                // v3
+                $plugins->configure(['shared_by_default' => false]);
+            } else {
+                // v2
+                $plugins->setShareByDefault(false);
+            }
         }
         static::$plugins = $plugins;
     }
