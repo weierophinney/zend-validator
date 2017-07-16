@@ -12,7 +12,7 @@ namespace Zend\Validator;
 use Traversable;
 use Zend\Stdlib\ArrayUtils;
 
-abstract class AbstractValidator implements ValidatorInterface
+abstract class AbstractValidator implements Validator
 {
     /**
      * Limits the maximum returned length of an error message
@@ -147,34 +147,16 @@ abstract class AbstractValidator implements ValidatorInterface
 
     /**
      * Sets the validation failure message template for a particular key
-     *
-     * @param  string $messageString
-     * @param  string $messageKey     OPTIONAL
-     * @return AbstractValidator Provides a fluent interface
-     * @throws Exception\InvalidArgumentException
      */
-    public function setMessage($messageString, $messageKey = null)
+    public function setMessageTemplate(string $messageKey, string $messageString) : void
     {
-        if ($messageKey === null) {
-            $keys = array_keys($this->abstractOptions['messageTemplates']);
-            foreach ($keys as $key) {
-                $this->setMessage($messageString, $key);
-            }
-            return $this;
-        }
-
-        if (! isset($this->abstractOptions['messageTemplates'][$messageKey])) {
-            throw new Exception\InvalidArgumentException("No message template exists for key '$messageKey'");
-        }
-
         $this->abstractOptions['messageTemplates'][$messageKey] = $messageString;
-        return $this;
     }
 
     /**
-     * Constructs and returns a validation failure message template associated with the given message key.
+     * Finds and returns the message template associated with the given message key.
      */
-    protected function createMessage(string $messageKey) : string
+    protected function getMessageTemplate(string $messageKey) : string
     {
         if ($messageKey === null) {
             $keys = array_keys($this->abstractOptions['messageTemplates']);
@@ -205,25 +187,5 @@ abstract class AbstractValidator implements ValidatorInterface
     public function isValueObscured()
     {
         return $this->abstractOptions['valueObscured'];
-    }
-
-    /**
-     * Returns the maximum allowed message length
-     *
-     * @return int
-     */
-    public static function getMessageLength()
-    {
-        return static::$messageLength;
-    }
-
-    /**
-     * Sets the maximum allowed message length
-     *
-     * @param int $length
-     */
-    public static function setMessageLength($length = -1)
-    {
-        static::$messageLength = $length;
     }
 }

@@ -479,10 +479,7 @@ class EmailAddress extends AbstractValidator
     }
 
     /**
-     * Defined by Zend\Validator\ValidatorInterface
-     *
-     * Returns true if and only if $value is a valid email address
-     * according to RFC2822
+     * Determine if the given $value is a valid email address per RFC 2822.
      *
      * @link   http://www.ietf.org/rfc/rfc2822.txt RFC2822
      * @link   http://www.columbia.edu/kermit/ascii.html US-ASCII characters

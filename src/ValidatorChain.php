@@ -15,7 +15,7 @@ use Zend\ServiceManager\ServiceManager;
 
 class ValidatorChain implements
     Countable,
-    ValidatorInterface
+    Validator
 {
     /**
      * Default priority at which validators are added
@@ -89,7 +89,7 @@ class ValidatorChain implements
      *
      * @param  string     $name    Name of validator to return
      * @param  null|array $options Options to pass to validator constructor (if not already instantiated)
-     * @return ValidatorInterface
+     * @return Validator
      */
     public function plugin($name, array $options = null)
     {
@@ -103,17 +103,15 @@ class ValidatorChain implements
      * If $breakChainOnFailure is true, then if the validator fails, the next validator in the chain,
      * if one exists, will not be executed.
      *
-     * @param  ValidatorInterface $validator
-     * @param  bool               $breakChainOnFailure
-     * @param  int                $priority            Priority at which to enqueue validator; defaults to
-     *                                                          1 (higher executes earlier)
-     *
+     * @param  Validator $validator
+     * @param  bool $breakChainOnFailure
+     * @param  int $priority Priority at which to enqueue validator; defaults
+     *     to 1 (higher executes earlier)
      * @throws Exception\InvalidArgumentException
-     *
      * @return self
      */
     public function attach(
-        ValidatorInterface $validator,
+        Validator $validator,
         $breakChainOnFailure = false,
         $priority = self::DEFAULT_PRIORITY
     ) {
@@ -132,13 +130,13 @@ class ValidatorChain implements
      * Proxy to attach() to keep BC
      *
      * @deprecated Please use attach()
-     * @param  ValidatorInterface      $validator
-     * @param  bool                 $breakChainOnFailure
-     * @param  int                  $priority
+     * @param Validator $validator
+     * @param bool $breakChainOnFailure
+     * @param int $priority
      * @return ValidatorChain Provides a fluent interface
      */
     public function addValidator(
-        ValidatorInterface $validator,
+        Validator $validator,
         $breakChainOnFailure = false,
         $priority = self::DEFAULT_PRIORITY
     ) {
@@ -151,11 +149,11 @@ class ValidatorChain implements
      * If $breakChainOnFailure is true, then if the validator fails, the next validator in the chain,
      * if one exists, will not be executed.
      *
-     * @param  ValidatorInterface      $validator
-     * @param  bool                 $breakChainOnFailure
+     * @param  Validator $validator
+     * @param  bool $breakChainOnFailure
      * @return ValidatorChain Provides a fluent interface
      */
-    public function prependValidator(ValidatorInterface $validator, $breakChainOnFailure = false)
+    public function prependValidator(Validator $validator, $breakChainOnFailure = false)
     {
         $priority = self::DEFAULT_PRIORITY;
 

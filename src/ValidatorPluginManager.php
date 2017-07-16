@@ -367,7 +367,7 @@ class ValidatorPluginManager extends AbstractPluginManager
      *
      * @var string
      */
-    protected $instanceOf = ValidatorInterface::class;
+    protected $instanceOf = Validator::class;
 
     /**
      * Constructor
@@ -418,7 +418,7 @@ class ValidatorPluginManager extends AbstractPluginManager
             throw new Exception\RuntimeException(sprintf(
                 'Plugin of type %s is invalid; must implement %s',
                 (is_object($plugin) ? get_class($plugin) : gettype($plugin)),
-                ValidatorInterface::class
+                Validator::class
             ), $e->getCode(), $e);
         }
     }

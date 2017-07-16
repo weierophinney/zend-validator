@@ -9,18 +9,18 @@
 
 namespace Zend\Validator;
 
-interface ValidatorInterface
+interface Validator
 {
     /**
      * Validate a value.
      *
-     * Returns a ValidatorResult, containing the results of validation.
+     * Returns a Result, containing the results of validation.
      *
      * @param  mixed $value
      * @param  array $context Optional; additional context for validation, such
      *     as other form values.
-     * @return ValidatorResult
+     * @return Result
      * @throws Exception\RuntimeException If validation of $value is impossible
      */
-    public function isValid($value, array $context = []) : ValidatorResult;
+    public function isValid($value, array $context = []) : Result;
 }

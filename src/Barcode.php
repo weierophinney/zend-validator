@@ -134,9 +134,7 @@ class Barcode extends AbstractValidator
     }
 
     /**
-     * Defined by Zend\Validator\ValidatorInterface
-     *
-     * Returns true if and only if $value contains a valid barcode
+     * Determine if the given $value contains a valid barcode
      *
      * @param  string $value
      * @return bool

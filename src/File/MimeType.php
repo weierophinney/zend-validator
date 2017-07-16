@@ -329,11 +329,11 @@ class MimeType extends AbstractValidator
     }
 
     /**
-     * Defined by Zend\Validator\ValidatorInterface
+     * Determine if the file matches the accepted mimetypes.
      *
-     * Returns true if the mimetype of the file matches the given ones. Also parts
-     * of mimetypes can be checked. If you give for example "image" all image
-     * mime types will be accepted like "image/gif", "image/jpeg" and so on.
+     * Also, parts of mimetypes can be checked. If you give for example "image"
+     * all image mime types will be accepted like "image/gif", "image/jpeg" and
+     * so on.
      *
      * @param  string|array $value Real file to check for mimetype
      * @param  array        $file  File data from \Zend\File\Transfer\Transfer (optional)

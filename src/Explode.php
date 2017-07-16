@@ -37,7 +37,7 @@ class Explode extends AbstractValidator implements ValidatorPluginManagerAwareIn
     protected $valueDelimiter = ',';
 
     /**
-     * @var ValidatorInterface
+     * @var Validator
      */
     protected $validator;
 
@@ -95,7 +95,7 @@ class Explode extends AbstractValidator implements ValidatorPluginManagerAwareIn
     /**
      * Sets the Validator for validating each value
      *
-     * @param ValidatorInterface|array $validator
+     * @param Validator|array $validator
      * @throws Exception\RuntimeException
      * @return Explode
      */
@@ -112,7 +112,7 @@ class Explode extends AbstractValidator implements ValidatorPluginManagerAwareIn
             $validator = $this->getValidatorPluginManager()->get($name, $options);
         }
 
-        if (! $validator instanceof ValidatorInterface) {
+        if (! $validator instanceof Validator) {
             throw new Exception\RuntimeException(
                 'Invalid validator given'
             );
@@ -125,7 +125,7 @@ class Explode extends AbstractValidator implements ValidatorPluginManagerAwareIn
     /**
      * Gets the Validator for validating each value
      *
-     * @return ValidatorInterface
+     * @return Validator
      */
     public function getValidator()
     {
@@ -155,9 +155,7 @@ class Explode extends AbstractValidator implements ValidatorPluginManagerAwareIn
     }
 
     /**
-     * Defined by Zend\Validator\ValidatorInterface
-     *
-     * Returns true if all values validate true
+     * Returns true if all values validate true.
      *
      * @param  mixed $value
      * @param  mixed $context Extra "context" to provide the composed validator
