@@ -120,35 +120,27 @@ class Bitwise extends AbstractValidator
     }
 
     /**
-     * Returns true if and only if $value is between min and max options, inclusively
-     * if inclusive option is true.
+     * Validates successfully if and only if $value is between min and max
+     * options, inclusively if inclusive option is true.
      *
-     * @param  mixed $value
-     * @return bool
+     * @throws Exception\RuntimeException for unrecognized operators.
      */
-    public function isValid($value)
+    public function isValid($value, array $context = []) : Result
     {
-        $this->setValue($value);
-
-        if (self::OP_AND === $this->operator) {
-            if ($this->strict) {
-                // All the bits set in value must be set in control
-                $this->error(self::NOT_AND_STRICT);
-
-                return (bool) (($this->control & $value) == $value);
-            } else {
-                // At least one of the bits must be common between value and control
-                $this->error(self::NOT_AND);
-
-                return (bool) ($this->control & $value);
-            }
-        } elseif (self::OP_XOR === $this->operator) {
-            $this->error(self::NOT_XOR);
-
-            return (bool) (($this->control ^ $value) === ($this->control | $value));
+        switch ($this->operator) {
+            case (self::OP_AND):
+                return $this->validateAndOperation($value);
+            case (self::OP_OR):
+                return $this->validateOrOperation($value);
+            default:
+                throw Exception\RuntimeException(sprintf(
+                    '%s instance has unrecognized operator "%s"; must be one of "%s" or "%s"',
+                    get_class($this),
+                    var_export($this->operator, true),
+                    self::OP_AND,
+                    self::OP_OR
+                ));
         }
-
-        return false;
     }
 
     /**
@@ -188,5 +180,35 @@ class Bitwise extends AbstractValidator
         $this->strict = (bool) $strict;
 
         return $this;
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function validateAndOperation($value) : Result
+    {
+        if ($this->strict) {
+            // All the bits set in value must be set in control
+            $this->error(self::NOT_AND_STRICT);
+
+            return ($this->control & $value) == $value
+                ? ValidatorResult::createValidResult($value)
+                : $this->createInvalidResult($value, [self::NOT_AND_STRICT]);
+        }
+
+        // At least one of the bits must be common between value and control
+        return (bool) ($this->control & $value)
+            ? ValidatorResult::createValidResult($value)
+            : $this->createInvalidResult($value, [self::NOT_AND]);
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function validateOrOperation($value) : Result
+    {
+        return ($this->control ^ $value) === ($this->control | $value)
+            ? ValidatorResult::createValidResult($value)
+            : $this->createInvalidResult($value, [self::NOT_XOR]);
     }
 }
