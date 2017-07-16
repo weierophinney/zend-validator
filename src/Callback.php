@@ -9,6 +9,8 @@
 
 namespace Zend\Validator;
 
+use Throwable;
+
 class Callback extends AbstractValidator
 {
     /**
@@ -108,19 +110,18 @@ class Callback extends AbstractValidator
      * Returns true if and only if the set callback returns
      * for the provided $value
      *
-     * @param  mixed $value
-     * @param  mixed $context Additional context to provide to the callback
-     * @return bool
-     * @throws Exception\InvalidArgumentException
+     * @throws Exception\InvalidArgumentException if no callback present
+     * @throws Exception\InvalidArgumentException if callback is not callable
      */
-    public function isValid($value, $context = null)
+    public function isValid($value, $context = null) : Result
     {
-        $this->setValue($value);
-
         $options  = $this->getCallbackOptions();
         $callback = $this->getCallback();
         if (empty($callback)) {
             throw new Exception\InvalidArgumentException('No callback given');
+        }
+        if (! is_callable($callback)) {
+            throw new Exception\InvalidArgumentException('Invalid callback given; not callable');
         }
 
         $args = [$value];
@@ -136,15 +137,11 @@ class Callback extends AbstractValidator
         }
 
         try {
-            if (! call_user_func_array($callback, $args)) {
-                $this->error(self::INVALID_VALUE);
-                return false;
-            }
-        } catch (\Exception $e) {
-            $this->error(self::INVALID_CALLBACK);
-            return false;
+            return (bool) $callback(...$args)
+                ? ValidatorResult::createValidResult($value)
+                : $this->createInvalidResult($value, [self::INVALID_VALUE]);
+        } catch (Throwable $e) {
+            return $this->createInvalidResult($value, [self::INVALID_CALLBACK]);
         }
-
-        return true;
     }
 }
