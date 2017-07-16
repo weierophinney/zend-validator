@@ -23,16 +23,24 @@ trait ValidatorResultMessageInterpolator
      */
     private function interpolateMessageVariable(string $message, string $variable, $substitution) : string
     {
-        if (is_object($substitution)) {
-            $substitution = method_exists($substitution, '__toString')
-                ? (string) $substitution
-                : sprintf('%s object', get_class($substitution));
+        return str_replace("%$variable%", $this->castValueToString($substitution), $message);
+    }
+
+    /**
+     * @param mixed $value
+     */
+    private function castValueToString($value) : string
+    {
+        if (is_object($value)) {
+            $value = method_exists($value, '__toString')
+                ? (string) $value
+                : sprintf('%s object', get_class($value));
         }
 
-        $substitution = is_array($substitution)
-            ? sprintf('[%s]', implode(', ', $substitution))
-            : $substitution;
+        $value = is_array($value)
+            ? sprintf('[%s]', implode(', ', $value))
+            : $value;
 
-        return str_replace("%$variable%", (string) $substitution, $message);
+        return (string) $value;
     }
 }

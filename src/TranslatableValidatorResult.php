@@ -7,9 +7,13 @@
 
 namespace Zend\Validator;
 
-class ValidatorResultTranslator
+class TranslatableValidatorResult implements Result
 {
+    use ValidatorResultDecorator;
     use ValidatorResultMessageInterpolator;
+
+    /** @var Result */
+    private $result;
 
     /** @var string Translation text domain */
     private $textDomain;
@@ -17,31 +21,35 @@ class ValidatorResultTranslator
     /** @var Translator\TranslatorInterface */
     private $translator;
 
-    public function __construct(Translator\TranslatorInterface $translator, string $textDomain = null)
-    {
+    public function __construct(
+        Result $result,
+        Translator\TranslatorInterface $translator,
+        string $textDomain = null
+    ) {
+        $this->result     = $result;
         $this->translator = $translator;
         $this->textDomain = $textDomain;
     }
 
     /**
-     * Create translated messages from a ValidatorResult
+     * Returns translated error message strings from the decorated result instance.
      *
-     * Loops through each message template from the ValidatorResult and returns
+     * Loops through each message template from the composed Result and returns
      * translated messages. Each message will have interpolated the composed
      * message variables from the result.
      *
-     * Additionally, if a `%value%` placeholder is found, the ValidatorResult
-     * value will be interpolated.
+     * Additionally, if a `%value%` placeholder is found, the Result value will
+     * be interpolated.
      */
-    public function translateMessages(ValidatorResult $result) : array
+    public function getMessages() : array
     {
-        $value    = $result->getValue();
+        $value    = $this->result->getValue();
         $messages = [];
 
-        foreach ($result->getMessageTemplates() as $template) {
+        foreach ($this->result->getMessageTemplates() as $template) {
             $messages[] = $this->interpolateMessageVariables(
                 $this->translator->translate($template, $this->textDomain),
-                $result
+                $this->result
             );
         }
 

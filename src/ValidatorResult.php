@@ -10,7 +10,7 @@ namespace Zend\Validator;
 /**
  * Value object representing results of validation.
  */
-class ValidatorResult
+class ValidatorResult implements Result
 {
     use ValidatorResultMessageInterpolator;
 
@@ -87,14 +87,14 @@ class ValidatorResult
     /**
      * Retrieve validation error messages.
      *
-     * If you are not using i18n features, you may use this method to get an
-     * array of validation error messages. The method loops through each
-     * message template and interpolates any message variables discovered in
-     * the string.
+     * This method loops through each message template and interpolates any
+     * message variables discovered in the string.
      *
-     * If you are using i18n features, you should create a ValidatorResultTranslator
-     * instance, and pass this instance to its `translateMessages()` method in
-     * order to get localized messages.
+     * If you are using i18n features, decorate this instance with a
+     * TranslatableValidatorResult.
+     *
+     * If you wish to osbcure the value, decorate this instance with an
+     * ObscuredValueValidatorResult.
      */
     public function getMessages() : array
     {
