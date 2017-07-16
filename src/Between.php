@@ -156,26 +156,27 @@ class Between extends AbstractValidator
     /**
      * Returns true if and only if $value is between min and max options, inclusively
      * if inclusive option is true.
-     *
-     * @param  mixed $value
-     * @return bool
      */
-    public function isValid($value)
+    public function isValid($value, array $context = []) : Result
     {
-        $this->setValue($value);
+        return $this->getInclusive()
+            ? $this->validateInclusive($value, $context)
+            : $this->validate($value, $context);
+    }
 
-        if ($this->getInclusive()) {
-            if ($this->getMin() > $value || $value > $this->getMax()) {
-                $this->error(self::NOT_BETWEEN);
-                return false;
-            }
-        } else {
-            if ($this->getMin() >= $value || $value >= $this->getMax()) {
-                $this->error(self::NOT_BETWEEN_STRICT);
-                return false;
-            }
+    private function validateInclusive($value, array $context) : Result
+    {
+        if ($this->getMin() > $value || $value > $this->getMax()) {
+            return $this->createInvalidResult($value, [self::NOT_BETWEEN]);
         }
+        return ValidatorResult::createValidResult($value);
+    }
 
-        return true;
+    private function validate($value, array $context) : Result
+    {
+        if ($this->getMin() >= $value || $value >= $this->getMax()) {
+            return $this->createInvalidResult($value, [self::NOT_BETWEEN_STRICT]);
+        }
+        return ValidatorResult::createValidResult($value);
     }
 }

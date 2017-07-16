@@ -60,6 +60,35 @@ abstract class AbstractValidator implements Validator
     }
 
     /**
+     * Create and return a result indicating validation failure.
+     *
+     * Use this within validators to create the validation result when a failure
+     * condition occurs. Pass it the value, and an array of message keys.
+     *
+     * If the "value obscured" flag is set, this method will decorate the result
+     * using ObscuredValueValidatorResult before returning it.
+     */
+    protected function createInvalidResult($value, array $messageKeys) : Result
+    {
+        $messageTemplates = array_map(function ($key) {
+            return $this->getMessageTemplate($key);
+        }, $messageKeys);
+
+        $result = ValidatorResult::createInvalidResult(
+            $value,
+            $messageTemplates,
+            $this->getMessageVariables()
+        );
+
+        if ($this->isValueObscured()) {
+            $result = new ObscuredValueValidatorResult($result);
+        }
+
+        return $result;
+    }
+
+
+    /**
      * Returns an option
      *
      * @param string $option Option to be returned
@@ -165,7 +194,6 @@ abstract class AbstractValidator implements Validator
 
         return $this->abstractOptions['messageTemplates'][$messageKey] ?? '';
     }
-
     /**
      * Set flag indicating whether or not value should be obfuscated in messages
      *
