@@ -12,6 +12,7 @@ namespace ZendTest\Validator;
 use PHPUnit\Framework\TestCase;
 use Zend\Validator\Between;
 use Zend\Validator\Exception\InvalidArgumentException;
+use Zend\Validator\Result;
 
 /**
  * @group      Zend_Validator
@@ -43,24 +44,15 @@ class BetweenTest extends TestCase
         foreach ($valuesExpected as $element) {
             $validator = new Between(['min' => $element[0], 'max' => $element[1], 'inclusive' => $element[2]]);
             foreach ($element[4] as $input) {
-                $this->assertEquals(
+                $result = $validator->isValid($input);
+                $this->assertInstanceOf(Result::class, $result);
+                $this->assertSame(
                     $element[3],
-                    $validator->isValid($input),
-                    'Failed values: ' . $input . ":" . implode("\n", $validator->getMessages())
+                    $result->isValid(),
+                    'Failed values: ' . $input . ":" . implode("\n", $result->getMessages())
                 );
             }
         }
-    }
-
-    /**
-     * Ensures that getMessages() returns expected default value
-     *
-     * @return void
-     */
-    public function testGetMessages()
-    {
-        $validator = new Between(['min' => 1, 'max' => 10]);
-        $this->assertEquals([], $validator->getMessages());
     }
 
     /**
@@ -140,12 +132,17 @@ class BetweenTest extends TestCase
         $this->assertFalse($validator->getInclusive());
     }
 
-    public function testConstructWithTravesableOptions()
+    public function testConstructWithTraversableOptions()
     {
         $options = new \ArrayObject(['min' => 1, 'max' => 10, 'inclusive' => false]);
         $validator = new Between($options);
 
-        $this->assertTrue($validator->isValid(5));
-        $this->assertFalse($validator->isValid(10));
+        $result = $validator->isValid(5);
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertTrue($result->isValid());
+
+        $result = $validator->isValid(10);
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertFalse($result->isValid());
     }
 }

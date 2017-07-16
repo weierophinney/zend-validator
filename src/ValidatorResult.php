@@ -107,7 +107,7 @@ class ValidatorResult implements Result
 
     public function getMessageTemplates() : array
     {
-        return $this->messages;
+        return $this->messageTemplates;
     }
 
     public function getMessageVariables() : array
