@@ -125,7 +125,7 @@ class Bitwise extends AbstractValidator
      *
      * @throws Exception\RuntimeException for unrecognized operators.
      */
-    public function isValid($value, array $context = []) : Result
+    public function validate($value, array $context = []) : Result
     {
         switch ($this->operator) {
             case (self::OP_AND):

@@ -44,7 +44,7 @@ class BetweenTest extends TestCase
         foreach ($valuesExpected as $element) {
             $validator = new Between(['min' => $element[0], 'max' => $element[1], 'inclusive' => $element[2]]);
             foreach ($element[4] as $input) {
-                $result = $validator->isValid($input);
+                $result = $validator->validate($input);
                 $this->assertInstanceOf(Result::class, $result);
                 $this->assertSame(
                     $element[3],
@@ -137,11 +137,11 @@ class BetweenTest extends TestCase
         $options = new \ArrayObject(['min' => 1, 'max' => 10, 'inclusive' => false]);
         $validator = new Between($options);
 
-        $result = $validator->isValid(5);
+        $result = $validator->validate(5);
         $this->assertInstanceOf(Result::class, $result);
         $this->assertTrue($result->isValid());
 
-        $result = $validator->isValid(10);
+        $result = $validator->validate(10);
         $this->assertInstanceOf(Result::class, $result);
         $this->assertFalse($result->isValid());
     }

@@ -113,7 +113,7 @@ class Callback extends AbstractValidator
      * @throws Exception\InvalidArgumentException if no callback present
      * @throws Exception\InvalidArgumentException if callback is not callable
      */
-    public function isValid($value, $context = null) : Result
+    public function validate($value, $context = null) : Result
     {
         $options  = $this->getCallbackOptions();
         $callback = $this->getCallback();

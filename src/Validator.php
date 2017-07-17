@@ -22,5 +22,5 @@ interface Validator
      * @return Result
      * @throws Exception\RuntimeException If validation of $value is impossible
      */
-    public function isValid($value, array $context = []) : Result;
+    public function validate($value, array $context = []) : Result;
 }
