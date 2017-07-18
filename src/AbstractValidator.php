@@ -9,45 +9,25 @@
 
 namespace Zend\Validator;
 
-use Traversable;
-use Zend\Stdlib\ArrayUtils;
-
 abstract class AbstractValidator implements Validator
 {
-    protected $abstractOptions = [
-        'messageTemplates'     => [], // Array of validation failure message templates
-        'messageVariables'     => [], // Array of additional variables available for validation failure messages
-    ];
+    /**
+     * Array of validation failure message templates. Should be an array of
+     * key value pairs, to allow both lookup of templates by key, as well as
+     * overriding the message template string.
+     *
+     * @var string[]
+     */
+    protected $messageTemplates = [];
 
     /**
-     * Abstract constructor for all validators
-     * A validator should accept following parameters:
-     *  - nothing f.e. Validator()
-     *  - one or multiple scalar values f.e. Validator($first, $second, $third)
-     *  - an array f.e. Validator(array($first => 'first', $second => 'second', $third => 'third'))
-     *  - an instance of Traversable f.e. Validator($config_instance)
+     * Array of variable subsitutions to make in message templates. Typically,
+     * these will be validator constraint values. The message templates will
+     * refer to them as `%name%`.
      *
-     * @param array|Traversable $options
+     * @var array
      */
-    public function __construct($options = null)
-    {
-        // The abstract constructor allows no scalar values
-        if ($options instanceof Traversable) {
-            $options = ArrayUtils::iteratorToArray($options);
-        }
-
-        if (isset($this->messageTemplates)) {
-            $this->abstractOptions['messageTemplates'] = $this->messageTemplates;
-        }
-
-        if (isset($this->messageVariables)) {
-            $this->abstractOptions['messageVariables'] = $this->messageVariables;
-        }
-
-        if (is_array($options)) {
-            $this->setOptions($options);
-        }
-    }
+    protected $messageVariables = [];
 
     /**
      * Create and return a result indicating validation failure.
@@ -69,89 +49,23 @@ abstract class AbstractValidator implements Validator
     }
 
     /**
-     * Returns an option
+     * Returns an array of variable names used in constructing validation failure messages.
      *
-     * @param string $option Option to be returned
-     * @return mixed Returned option
-     * @throws Exception\InvalidArgumentException
+     * @return string[]
      */
-    public function getOption($option)
+    public function getMessageVariables() : array
     {
-        if (array_key_exists($option, $this->abstractOptions)) {
-            return $this->abstractOptions[$option];
-        }
-
-        if (isset($this->options) && array_key_exists($option, $this->options)) {
-            return $this->options[$option];
-        }
-
-        throw new Exception\InvalidArgumentException("Invalid option '$option'");
-    }
-
-    /**
-     * Returns all available options
-     *
-     * @return array Array with all available options
-     */
-    public function getOptions()
-    {
-        $result = $this->abstractOptions;
-        if (isset($this->options)) {
-            $result += $this->options;
-        }
-        return $result;
-    }
-
-    /**
-     * Sets one or multiple options
-     *
-     * @param  array|Traversable $options Options to set
-     * @throws Exception\InvalidArgumentException If $options is not an array or Traversable
-     * @return AbstractValidator Provides fluid interface
-     */
-    public function setOptions($options = [])
-    {
-        if (! is_array($options) && ! $options instanceof Traversable) {
-            throw new Exception\InvalidArgumentException(__METHOD__ . ' expects an array or Traversable');
-        }
-
-        foreach ($options as $name => $option) {
-            $fname = 'set' . ucfirst($name);
-            $fname2 = 'is' . ucfirst($name);
-            if (($name != 'setOptions') && method_exists($this, $name)) {
-                $this->{$name}($option);
-            } elseif (($fname != 'setOptions') && method_exists($this, $fname)) {
-                $this->{$fname}($option);
-            } elseif (method_exists($this, $fname2)) {
-                $this->{$fname2}($option);
-            } elseif (isset($this->options)) {
-                $this->options[$name] = $option;
-            } else {
-                $this->abstractOptions[$name] = $option;
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Returns an array of the names of variables that are used in constructing validation failure messages
-     *
-     * @return array
-     */
-    public function getMessageVariables()
-    {
-        return array_keys($this->abstractOptions['messageVariables']);
+        return array_keys($this->messageVariables);
     }
 
     /**
      * Returns the message templates from the validator
      *
-     * @return array
+     * @return string[]
      */
-    public function getMessageTemplates()
+    public function getMessageTemplates() : array
     {
-        return $this->abstractOptions['messageTemplates'];
+        return $this->messageTemplates;
     }
 
     /**
@@ -159,7 +73,7 @@ abstract class AbstractValidator implements Validator
      */
     public function setMessageTemplate(string $messageKey, string $messageString) : void
     {
-        $this->abstractOptions['messageTemplates'][$messageKey] = $messageString;
+        $this->messageTemplates[$messageKey] = $messageString;
     }
 
     /**
@@ -167,11 +81,6 @@ abstract class AbstractValidator implements Validator
      */
     protected function getMessageTemplate(string $messageKey) : string
     {
-        if ($messageKey === null) {
-            $keys = array_keys($this->abstractOptions['messageTemplates']);
-            $messageKey = current($keys);
-        }
-
-        return $this->abstractOptions['messageTemplates'][$messageKey] ?? '';
+        return $this->messageTemplates[$messageKey] ?? '';
     }
 }
