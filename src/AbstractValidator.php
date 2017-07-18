@@ -14,13 +14,6 @@ use Zend\Stdlib\ArrayUtils;
 
 abstract class AbstractValidator implements Validator
 {
-    /**
-     * Limits the maximum returned length of an error message
-     *
-     * @var int
-     */
-    protected static $messageLength = -1;
-
     protected $abstractOptions = [
         'messages'             => [], // Array of validation failure messages
         'messageTemplates'     => [], // Array of validation failure message templates
