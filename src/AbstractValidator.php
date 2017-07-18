@@ -25,8 +25,6 @@ abstract class AbstractValidator implements Validator
         'messages'             => [], // Array of validation failure messages
         'messageTemplates'     => [], // Array of validation failure message templates
         'messageVariables'     => [], // Array of additional variables available for validation failure messages
-        'valueObscured'        => false,   // Flag indicating whether or not value should be obfuscated
-                                           // in error messages
     ];
 
     /**
@@ -64,9 +62,6 @@ abstract class AbstractValidator implements Validator
      *
      * Use this within validators to create the validation result when a failure
      * condition occurs. Pass it the value, and an array of message keys.
-     *
-     * If the "value obscured" flag is set, this method will decorate the result
-     * using ObscuredValueValidatorResult before returning it.
      */
     protected function createInvalidResult($value, array $messageKeys) : Result
     {
@@ -74,19 +69,12 @@ abstract class AbstractValidator implements Validator
             return $this->getMessageTemplate($key);
         }, $messageKeys);
 
-        $result = ValidatorResult::createInvalidResult(
+        return ValidatorResult::createInvalidResult(
             $value,
             $messageTemplates,
             $this->getMessageVariables()
         );
-
-        if ($this->isValueObscured()) {
-            $result = new ObscuredValueValidatorResult($result);
-        }
-
-        return $result;
     }
-
 
     /**
      * Returns an option
@@ -193,27 +181,5 @@ abstract class AbstractValidator implements Validator
         }
 
         return $this->abstractOptions['messageTemplates'][$messageKey] ?? '';
-    }
-    /**
-     * Set flag indicating whether or not value should be obfuscated in messages
-     *
-     * @param  bool $flag
-     * @return AbstractValidator
-     */
-    public function setValueObscured($flag)
-    {
-        $this->abstractOptions['valueObscured'] = (bool) $flag;
-        return $this;
-    }
-
-    /**
-     * Retrieve flag indicating whether or not value should be obfuscated in
-     * messages
-     *
-     * @return bool
-     */
-    public function isValueObscured()
-    {
-        return $this->abstractOptions['valueObscured'];
     }
 }
