@@ -15,7 +15,6 @@ use Zend\Stdlib\ArrayUtils;
 abstract class AbstractValidator implements Validator
 {
     protected $abstractOptions = [
-        'messages'             => [], // Array of validation failure messages
         'messageTemplates'     => [], // Array of validation failure message templates
         'messageVariables'     => [], // Array of additional variables available for validation failure messages
     ];
