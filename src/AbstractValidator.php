@@ -44,7 +44,7 @@ abstract class AbstractValidator implements Validator
         return ValidatorResult::createInvalidResult(
             $value,
             $messageTemplates,
-            $this->getMessageVariables()
+            $this->messageVariables
         );
     }
 

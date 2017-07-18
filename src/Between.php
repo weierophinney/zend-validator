@@ -28,25 +28,19 @@ class Between extends AbstractValidator
     ];
 
     /**
-     * Additional variables available for validation failure messages
-     *
-     * @var array
+     * @var bool
      */
-    protected $messageVariables = [
-        'min' => ['options' => 'min'],
-        'max' => ['options' => 'max'],
-    ];
+    private $inclusive;
 
     /**
-     * Options for the between validator
-     *
-     * @var array
+     * @var int|float
      */
-    protected $options = [
-        'inclusive' => true,  // Whether to do inclusive comparisons, allowing equivalence to min and/or max
-        'min'       => 0,
-        'max'       => PHP_INT_MAX,
-    ];
+    private $max;
+
+    /**
+     * @var int|float
+     */
+    private $min;
 
     /**
      * Sets validator options
@@ -55,102 +49,59 @@ class Between extends AbstractValidator
      *   'max' => scalar, maximum border
      *   'inclusive' => boolean, inclusive border values
      *
-     * @param  array|Traversable $options
-     *
-     * @throws Exception\InvalidArgumentException
+     * @param int|float $min
+     * @param int|float $max
+     * @throws Exception\InvalidArgumentException if $min is not numeric
+     * @throws Exception\InvalidArgumentException if $max is not numeric
      */
-    public function __construct($options = null)
+    public function __construct($min = 0, $max = PHP_INT_MAX, bool $inclusive = true)
     {
-        if ($options instanceof Traversable) {
-            $options = ArrayUtils::iteratorToArray($options);
+        if (! is_numeric($min)) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Invalid value for "min"; must be numeric, received %s',
+                is_object($min) ? get_class($min) : gettype($min)
+            ));
         }
-        if (! is_array($options)) {
-            $options = func_get_args();
-            $temp['min'] = array_shift($options);
-            if (! empty($options)) {
-                $temp['max'] = array_shift($options);
-            }
-
-            if (! empty($options)) {
-                $temp['inclusive'] = array_shift($options);
-            }
-
-            $options = $temp;
+        if (! is_numeric($max)) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Invalid value for "max"; must be numeric, received %s',
+                is_object($max) ? get_class($max) : gettype($max)
+            ));
         }
 
-        if (count($options) !== 2
-            && (! array_key_exists('min', $options) || ! array_key_exists('max', $options))
-        ) {
-            throw new Exception\InvalidArgumentException("Missing option. 'min' and 'max' have to be given");
-        }
+        $this->min = $min;
+        $this->max = $max;
+        $this->inclusive = $inclusive;
 
-        parent::__construct($options);
+        $this->messageVariables = [
+            'min' => $min,
+            'max' => $max,
+        ];
     }
 
     /**
      * Returns the min option
      *
-     * @return mixed
+     * @return int|float
      */
     public function getMin()
     {
-        return $this->options['min'];
-    }
-
-    /**
-     * Sets the min option
-     *
-     * @param  mixed $min
-     * @return Between Provides a fluent interface
-     */
-    public function setMin($min)
-    {
-        $this->options['min'] = $min;
-        return $this;
+        return $this->min;
     }
 
     /**
      * Returns the max option
      *
-     * @return mixed
+     * @return int|float
      */
     public function getMax()
     {
-        return $this->options['max'];
+        return $this->max;
     }
 
-    /**
-     * Sets the max option
-     *
-     * @param  mixed $max
-     * @return Between Provides a fluent interface
-     */
-    public function setMax($max)
+    public function isInclusive() : bool
     {
-        $this->options['max'] = $max;
-        return $this;
-    }
-
-    /**
-     * Returns the inclusive option
-     *
-     * @return bool
-     */
-    public function getInclusive()
-    {
-        return $this->options['inclusive'];
-    }
-
-    /**
-     * Sets the inclusive option
-     *
-     * @param  bool $inclusive
-     * @return Between Provides a fluent interface
-     */
-    public function setInclusive($inclusive)
-    {
-        $this->options['inclusive'] = $inclusive;
-        return $this;
+        return $this->inclusive;
     }
 
     /**
@@ -159,14 +110,14 @@ class Between extends AbstractValidator
      */
     public function validate($value, array $context = []) : Result
     {
-        return $this->getInclusive()
+        return $this->isInclusive()
             ? $this->validateInclusive($value, $context)
             : $this->validateExclusive($value, $context);
     }
 
     private function validateInclusive($value, array $context) : Result
     {
-        if ($this->getMin() > $value || $value > $this->getMax()) {
+        if ($value < $this->getMin() || $value > $this->getMax()) {
             return $this->createInvalidResult($value, [self::NOT_BETWEEN]);
         }
         return ValidatorResult::createValidResult($value);
@@ -174,7 +125,7 @@ class Between extends AbstractValidator
 
     private function validateExclusive($value, array $context) : Result
     {
-        if ($this->getMin() >= $value || $value >= $this->getMax()) {
+        if ($value <= $this->getMin() || $value >= $this->getMax()) {
             return $this->createInvalidResult($value, [self::NOT_BETWEEN_STRICT]);
         }
         return ValidatorResult::createValidResult($value);

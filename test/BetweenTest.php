@@ -10,49 +10,88 @@
 namespace ZendTest\Validator;
 
 use PHPUnit\Framework\TestCase;
+use stdClass;
 use Zend\Validator\Between;
 use Zend\Validator\Exception\InvalidArgumentException;
 use Zend\Validator\Result;
 
-/**
- * @group      Zend_Validator
- */
 class BetweenTest extends TestCase
 {
-    /**
-     * Ensures that the validator follows expected behavior
-     *
-     * @return void
-     */
-    public function testBasic()
+    public function validationProvider()
     {
-        /**
-         * The elements of each array are, in order:
-         *      - minimum
-         *      - maximum
-         *      - inclusive
-         *      - expected validation result
-         *      - array of test input values
-         */
-        $valuesExpected = [
-            [1, 100, true, true, [1, 10, 100]],
-            [1, 100, true, false, [0, 0.99, 100.01, 101]],
-            [1, 100, false, false, [0, 1, 100, 101]],
-            ['a', 'z', true, true, ['a', 'b', 'y', 'z']],
-            ['a', 'z', false, false, ['!', 'a', 'z']]
-            ];
-        foreach ($valuesExpected as $element) {
-            $validator = new Between(['min' => $element[0], 'max' => $element[1], 'inclusive' => $element[2]]);
-            foreach ($element[4] as $input) {
-                $result = $validator->validate($input);
-                $this->assertInstanceOf(Result::class, $result);
-                $this->assertSame(
-                    $element[3],
-                    $result->isValid(),
-                    'Failed values: ' . $input . ":" . implode("\n", $result->getMessages())
-                );
-            }
-        }
+        return [
+            'inclusive-int-lower-valid'     => [1, 100, true, 1, true],
+            'inclusive-int-between-valid'   => [1, 100, true, 10, true],
+            'inclusive-int-upper-valid'     => [1, 100, true, 100, true],
+            'inclusive-int-lower-invalid'   => [1, 100, true, 0, false],
+            'inclusive-int-upper-invalid'   => [1, 100, true, 101, false],
+            'inclusive-float-lower-valid'   => [0.01, 0.99, true, 0.02, true],
+            'inclusive-float-between-valid' => [0.01, 0.99, true, 0.51, true],
+            'inclusive-float-upper-valid'   => [0.01, 0.99, true, 0.98, true],
+            'inclusive-float-lower-invalid' => [0.01, 0.99, true, 0.009, false],
+            'inclusive-float-upper-invalid' => [0.01, 0.99, true, 1.0, false],
+            'exclusive-int-lower-valid'     => [1, 100, false, 2, true],
+            'exclusive-int-between-valid'   => [1, 100, false, 10, true],
+            'exclusive-int-upper-valid'     => [1, 100, false, 99, true],
+            'exclusive-int-lower-invalid'   => [1, 100, false, 1, false],
+            'exclusive-int-upper-invalid'   => [1, 100, false, 100, false],
+            'exclusive-float-lower-valid'   => [0.01, 0.99, false, 0.02, true],
+            'exclusive-float-between-valid' => [0.01, 0.99, false, 0.51, true],
+            'exclusive-float-upper-valid'   => [0.01, 0.99, false, 0.98, true],
+            'exclusive-float-lower-invalid' => [0.01, 0.99, false, 0.01, false],
+            'exclusive-float-upper-invalid' => [0.01, 0.99, false, 0.99, false],
+        ];
+    }
+
+    /**
+     * @dataProvider validationProvider
+     */
+    public function testValidateReturnsExpectedResults(
+        $min,
+        $max,
+        bool $inclusive,
+        $input,
+        bool $expectedResult
+    ) {
+        $validator = new Between($min, $max, $inclusive);
+        $result = $validator->validate($input);
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertSame(
+            $expectedResult,
+            $result->isValid(),
+            'Failed value: ' . $input . ":" . implode("\n", $result->getMessages())
+        );
+    }
+
+    public function invalidConstructorValues()
+    {
+        return [
+            'invalid-min-null'   => [null, 1, '"min"'],
+            'invalid-min-false'  => [false, 1, '"min"'],
+            'invalid-min-true'   => [true, 1, '"min"'],
+            'invalid-min-string' => ['invalid', 1, '"min"'],
+            'invalid-min-array'  => [[], 1, '"min"'],
+            'invalid-min-object' => [new stdClass(), 1, '"min"'],
+            'invalid-max-null'   => [1, null, '"max"'],
+            'invalid-max-false'  => [1, false, '"max"'],
+            'invalid-max-true'   => [1, true, '"max"'],
+            'invalid-max-string' => [1, 'invalid', '"max"'],
+            'invalid-max-array'  => [1, [], '"max"'],
+            'invalid-max-object' => [1, new stdClass(), '"max"'],
+        ];
+    }
+
+    /**
+     * @dataProvider invalidConstructorValues
+     */
+    public function testRaisesExceptionForInvalidMinAndMaxValues(
+        $min,
+        $max,
+        string $expectedExceptionMessage
+    ) {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($expectedExceptionMessage);
+        new Between($min, $max);
     }
 
     /**
@@ -62,7 +101,7 @@ class BetweenTest extends TestCase
      */
     public function testGetMin()
     {
-        $validator = new Between(['min' => 1, 'max' => 10]);
+        $validator = new Between(1, 10);
         $this->assertEquals(1, $validator->getMin());
     }
 
@@ -73,76 +112,30 @@ class BetweenTest extends TestCase
      */
     public function testGetMax()
     {
-        $validator = new Between(['min' => 1, 'max' => 10]);
+        $validator = new Between(1, 10);
         $this->assertEquals(10, $validator->getMax());
     }
 
     /**
-     * Ensures that getInclusive() returns expected default value
+     * Ensures that isInclusive() returns expected default value
      *
      * @return void
      */
-    public function testGetInclusive()
+    public function testDefaultInclusiveFlagIsTrue()
     {
-        $validator = new Between(['min' => 1, 'max' => 10]);
-        $this->assertEquals(true, $validator->getInclusive());
+        $validator = new Between(1, 10);
+        $this->assertTrue($validator->isInclusive());
     }
 
-    public function testEqualsMessageTemplates()
+    public function testCanPassInclusiveFlagToConstructor()
     {
-        $validator = new Between(['min' => 1, 'max' => 10]);
-        $this->assertAttributeEquals($validator->getOption('messageTemplates'), 'messageTemplates', $validator);
+        $validator = new Between(1, 10, false);
+        $this->assertFalse($validator->isInclusive());
     }
 
     public function testEqualsMessageVariables()
     {
-        $validator = new Between(['min' => 1, 'max' => 10]);
-        $this->assertAttributeEquals($validator->getOption('messageVariables'), 'messageVariables', $validator);
-    }
-
-    /**
-     * @covers Zend\Validator\Between::__construct()
-     * @dataProvider constructBetweenValidatorInvalidDataProvider
-     *
-     * @param array $args
-     */
-    public function testMissingMinOrMax(array $args)
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Missing option. 'min' and 'max' have to be given");
-
-        new Between($args);
-    }
-
-    public function constructBetweenValidatorInvalidDataProvider()
-    {
-        return [
-            [
-                ['min' => 1],
-            ],
-            [
-                ['max' => 5],
-            ],
-        ];
-    }
-
-    public function testConstructorCanAcceptInclusiveParameter()
-    {
-        $validator = new Between(1, 10, false);
-        $this->assertFalse($validator->getInclusive());
-    }
-
-    public function testConstructWithTraversableOptions()
-    {
-        $options = new \ArrayObject(['min' => 1, 'max' => 10, 'inclusive' => false]);
-        $validator = new Between($options);
-
-        $result = $validator->validate(5);
-        $this->assertInstanceOf(Result::class, $result);
-        $this->assertTrue($result->isValid());
-
-        $result = $validator->validate(10);
-        $this->assertInstanceOf(Result::class, $result);
-        $this->assertFalse($result->isValid());
+        $validator = new Between(1, 10);
+        $this->assertAttributeEquals(['min' => 1, 'max' => 10], 'messageVariables', $validator);
     }
 }
