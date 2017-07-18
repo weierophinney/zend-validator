@@ -43,16 +43,31 @@ class TranslatableValidatorResult implements Result
      */
     public function getMessages() : array
     {
-        $value    = $this->result->getValue();
+        return $this->result instanceof ResultAggregate
+            ? $this->getMessagesForResultAggregate($this->result)
+            : $this->getMessagesForResult($this->result);
+    }
+
+    private function getMessagesForResult(Result $result) : array
+    {
+        return array_reduce(
+            $result->getMessageTemplates(),
+            function (array $messages, string $template) use ($result) {
+                array_push($messages, $this->interpolateMessageVariables(
+                    $this->translator->translate($template, $this->textDomain),
+                    $result
+                ));
+            },
+            []
+        );
+    }
+
+    private function getMessagesForResultAggregate(ResultAggregate $aggregate) : array
+    {
         $messages = [];
-
-        foreach ($this->result->getMessageTemplates() as $template) {
-            $messages[] = $this->interpolateMessageVariables(
-                $this->translator->translate($template, $this->textDomain),
-                $this->result
-            );
+        foreach ($aggregate as $result) {
+            array_merge($messages, $this->getMessagesForResult($result));
         }
-
         return $messages;
     }
 }

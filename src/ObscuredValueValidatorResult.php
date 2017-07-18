@@ -26,11 +26,9 @@ class ObscuredValueValidatorResult implements Result
      */
     public function getMessages() : array
     {
-        $messages = [];
-        foreach ($this->result->getMessageTemplates() as $template) {
-            $messages[] = $this->interpolateMessageVariables($template, $this);
-        }
-        return $messages;
+        return $this->result instanceof ResultAggregate
+            ? $this->getMessagesForResultAggregate($this->result, $this->getValue())
+            : $this->getMessagesForResult($this->result, $this->getValue());
     }
 
     /**
@@ -44,5 +42,41 @@ class ObscuredValueValidatorResult implements Result
     {
         $value = $this->castValueToString($this->result->getValue());
         return str_repeat('*', strlen($value));
+    }
+
+    private function getMessagesForResult(Result $result, string $value) : array
+    {
+        return array_reduce(
+            $result->getMessageTemplates(),
+            function (array $messages, string $template) use ($result, $value) {
+                array_push(
+                    $messages,
+                    $this->interpolateMessageVariablesWithValue($template, $result, $value)
+                );
+                return $messages;
+            },
+            []
+        );
+    }
+
+    private function getMessagesForResultAggregate(ResultAggregate $aggregate, string $value) : array
+    {
+        $messages = [];
+        foreach ($aggregate as $result) {
+            array_merge($messages, $this->getMessagesForResult($result, $value));
+        }
+        return $messages;
+    }
+
+    /**
+     * Ensure that the value is obscured when interpolating messages for an aggregate.
+     */
+    private function interpolateMessageVariablesWithValue(string $message, Result $result, string $value) : string
+    {
+        $messageVariables = array_merge($result->getMessageVariables(), ['value' => $value]);
+        foreach ($messageVariables as $variable => $substitution) {
+            $message = $this->interpolateMessageVariable($message, $variable, $substitution);
+        }
+        return $message;
     }
 }

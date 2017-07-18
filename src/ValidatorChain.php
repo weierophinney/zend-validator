@@ -35,13 +35,6 @@ class ValidatorChain implements
     protected $validators;
 
     /**
-     * Array of validation failure messages
-     *
-     * @var array
-     */
-    protected $messages = [];
-
-    /**
      * Initialize validator chain
      */
     public function __construct()
@@ -235,23 +228,23 @@ class ValidatorChain implements
      * @param  mixed $context Extra "context" to provide the validator
      * @return bool
      */
-    public function isValid($value, $context = null)
+    public function validate($value, $context = null) : Result
     {
-        $this->messages = [];
-        $result         = true;
+        $results = new ValidatorResultAggregate($value);
         foreach ($this->validators as $element) {
             $validator = $element['instance'];
-            if ($validator->isValid($value, $context)) {
+            $result = $validator->validate($value, $context);
+            $results->push($result);
+            if ($result->isValid()) {
                 continue;
             }
-            $result         = false;
-            $messages       = $validator->getMessages();
-            $this->messages = array_replace_recursive($this->messages, $messages);
+
             if ($element['breakChainOnFailure']) {
                 break;
             }
         }
-        return $result;
+
+        return $results;
     }
 
     /**
@@ -270,16 +263,6 @@ class ValidatorChain implements
     }
 
     /**
-     * Returns array of validation failure messages
-     *
-     * @return array
-     */
-    public function getMessages()
-    {
-        return $this->messages;
-    }
-
-    /**
      * Get all the validators
      *
      * @return array
@@ -287,17 +270,6 @@ class ValidatorChain implements
     public function getValidators()
     {
         return $this->validators->toArray(PriorityQueue::EXTR_DATA);
-    }
-
-    /**
-     * Invoke chain as command
-     *
-     * @param  mixed $value
-     * @return bool
-     */
-    public function __invoke($value)
-    {
-        return $this->isValid($value);
     }
 
     /**
@@ -320,6 +292,6 @@ class ValidatorChain implements
      */
     public function __sleep()
     {
-        return ['validators', 'messages'];
+        return ['validators'];
     }
 }

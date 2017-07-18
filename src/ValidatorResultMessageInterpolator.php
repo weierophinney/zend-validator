@@ -9,7 +9,7 @@ namespace Zend\Validator;
 
 trait ValidatorResultMessageInterpolator
 {
-    private function interpolateMessageVariables(string $message, ValidatorResult $result) : string
+    private function interpolateMessageVariables(string $message, Result $result) : string
     {
         $messageVariables = array_merge($result->getMessageVariables(), ['value' => $result->getValue()]);
         foreach ($messageVariables as $variable => $substitution) {
